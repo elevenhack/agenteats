@@ -6,7 +6,13 @@ This is a Next.js template which can be deployed to [Railway](https://railway.ap
 
 Railway automatically configures your Next.js application to run as a Node.js server (through `next start`). You can deploy to Railway using their CLI or GitHub integration.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+Click the button below to begin:
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/yDom4a)
+
+We highly recommend that you eject from the template after deployment to create a copy of the repo on your GitHub account.
+
+**Note:** You can also choose from a variety of [Next.js app templates](https://railway.app/templates?q=nextjs) created by the community.
 
 For more information, see our [deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying#self-hosting).
 
