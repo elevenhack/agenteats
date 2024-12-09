@@ -8,7 +8,7 @@ Railway automatically configures your Next.js application to run as a Node.js se
 
 Click the button below to begin:
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/yDom4a)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/new/template/yDom4a)
 
 We highly recommend that you eject from the template after deployment to create a copy of the repo on your GitHub account.
 
