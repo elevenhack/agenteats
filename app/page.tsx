@@ -1,6 +1,5 @@
 import { Phone, DollarSign, Clock, Users, CheckCircle, ArrowRight } from 'lucide-react'
-import { SignedIn, SignedOut } from '@clerk/nextjs'
-import Link from 'next/link'
+import { SignedIn, SignedOut, SignUpButton } from '@clerk/nextjs'
 import Dashboard from '@/components/Dashboard'
 import AgentDemo from '@/components/AgentDemo'
 
@@ -42,10 +41,13 @@ function LandingPage() {
             no missed calls. Just more revenue for your restaurant.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link href="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg">
+                  <SignUpButton>
+        
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg">
               Start for free
               <ArrowRight className="w-5 h-5" />
-            </Link>
+            </button>        
+              </SignUpButton>
          
           </div>
           <p className="text-sm text-gray-500">Free 14-day trial • No credit card required • Setup in 5 minutes</p>
@@ -309,9 +311,13 @@ function LandingPage() {
                 <span className="text-gray-700">Customer support</span>
               </div>
             </div>
+                    
+              <SignUpButton>
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors w-full">
               Start Free Trial
             </button>
+                    
+              </SignUpButton>
           </div>
 
           <div className="mt-8 text-gray-600">
@@ -332,12 +338,14 @@ function LandingPage() {
             Join hundreds of restaurants saving thousands on order fees
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    
+              <SignUpButton>
             <button className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors">
               Start Free 14-Day Trial
             </button>
-            <button className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors">
-              Schedule Demo
-            </button>
+                    
+              </SignUpButton>
+         
           </div>
         </div>
       </section>
