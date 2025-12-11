@@ -42,10 +42,10 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
  
 
-      <div className=" grid grid-cols-[400px_1fr] gap-4">
+      <div className=" grid grid-cols-[320px_1fr] gap-4">
     
           {/* Sidebar Navigation */}
-          <nav className="w-64 bg-white h-[calc(100vh-64px)] border-r p-6  sticky top-[64px]">
+          <nav className=" bg-white h-[calc(100vh-64px)] border-r p-6  sticky top-[64px]">
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon
