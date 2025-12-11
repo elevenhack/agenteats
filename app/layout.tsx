@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body className={`${jetbrainsMono.variable} antialiased font-mono`}>
           <header className="flex justify-between items-center p-4 gap-4 h-16 border-b sticky top-0 z-10 bg-white">
             <Link href="/" className="text-lg font-mono hover:opacity-80 transition-opacity">AgentEats</Link>

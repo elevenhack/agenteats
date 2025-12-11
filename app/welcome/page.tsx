@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { createOrganization } from "../actions/onboarding";
+import { MenuImporter } from "@/components/MenuImporter";
 
 type Step = "info" | "menu" | "review";
 
@@ -262,9 +263,30 @@ export default function WelcomePage() {
               </div>
             )}
 
+
             {/* Step 2: Menu */}
             {currentStep === "menu" && (
               <div className="space-y-6">
+                {/* AI Import Option */}
+                <MenuImporter
+                  onMenuGenerated={(menu) =>
+                    setFormData({ ...formData, menu })
+                  }
+                />
+
+                {/* Divider */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-3 bg-white text-sm text-gray-500">
+                      or type manually
+                    </span>
+                  </div>
+                </div>
+
+                {/* Manual Entry */}
                 <div>
                   <label
                     htmlFor="menu"
@@ -278,7 +300,7 @@ export default function WelcomePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, menu: e.target.value })
                     }
-                    rows={12}
+                    rows={10}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono text-sm transition-shadow"
                     placeholder={`Enter your menu in markdown format...
 
@@ -295,7 +317,6 @@ Example:
 # Drinks
 - Soda - $2
 - Water - $1`}
-                    autoFocus
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     Use markdown format: # for categories, - for items with

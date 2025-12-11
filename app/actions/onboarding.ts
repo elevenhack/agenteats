@@ -46,5 +46,5 @@ export async function createOrganization(formData: FormData) {
     },
   })
 
-  redirect('/menu')
+  redirect('/')
 }

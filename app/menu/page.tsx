@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { Save, Loader2, FileText, Edit3, Eye } from 'lucide-react'
 import { getOrganizationSettings, updateMenu } from '@/app/actions/settings'
+import { MenuImporter } from '@/components/MenuImporter'
 
 export default function MenuPage() {
   const [menu, setMenu] = useState('')
@@ -148,12 +149,31 @@ export default function MenuPage() {
           {/* Content */}
           <div className="p-6">
             {isEditing ? (
-              <textarea
-                value={menu}
-                onChange={(e) => setMenu(e.target.value)}
-                rows={20}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono text-sm transition-shadow resize-none"
-                placeholder={`Enter your menu in markdown format...
+              <div className="space-y-6">
+                {/* AI Import Option */}
+                <MenuImporter
+                  onMenuGenerated={(generatedMenu) => setMenu(generatedMenu)}
+                />
+
+                {/* Divider */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-3 bg-white text-sm text-gray-500">
+                      or type manually
+                    </span>
+                  </div>
+                </div>
+
+                {/* Manual Entry */}
+                <textarea
+                  value={menu}
+                  onChange={(e) => setMenu(e.target.value)}
+                  rows={16}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono text-sm transition-shadow resize-none"
+                  placeholder={`Enter your menu in markdown format...
 
 Example:
 # Pizza
@@ -168,8 +188,8 @@ Example:
 # Drinks
 - Soda - $2
 - Water - $1`}
-                autoFocus
-              />
+                />
+              </div>
             ) : menu ? (
               <div className="bg-gray-50 rounded-lg p-6 font-mono text-sm whitespace-pre-wrap text-gray-800 min-h-[400px]">
                 {menu}
