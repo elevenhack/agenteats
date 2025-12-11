@@ -1,257 +1,109 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Spinner } from "@/components/ui/spinner";
-import { Badge } from "@/components/ui/badge";
 import {
-  CheckCircle2,
+  CheckCircle,
   Store,
   Upload,
-  Scan,
   MapPin,
-  Eye,
-  Rocket,
+  Clock,
+  FileText,
+  ArrowRight,
+  ArrowLeft,
   Loader2,
-  FileImage,
 } from "lucide-react";
+import { createOrganization } from "../actions/onboarding";
 
-type Step =
-  | "business"
-  | "upload"
-  | "analyzing"
-  | "confirm-details"
-  | "confirm-menu"
-  | "generating"
-  | "complete";
+type Step = "info" | "menu" | "review";
 
-interface MenuItem {
-  id: string;
+interface FormData {
   name: string;
-  price: number;
-  description?: string;
-  category?: string;
-}
-
-interface RestaurantDetails {
-  name: string;
-  address: string;
+  location: string;
+  typicalWaitTime: string;
+  menu: string;
 }
 
 export default function WelcomePage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState<Step>("business");
-  const [businessType, setBusinessType] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
-  const [restaurantDetails, setRestaurantDetails] = useState<RestaurantDetails>(
-    {
-      name: "",
-      address: "",
-    }
-  );
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isPending, startTransition] = useTransition();
+  const [currentStep, setCurrentStep] = useState<Step>("info");
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    location: "",
+    typicalWaitTime: "",
+    menu: "",
+  });
 
   const stepConfig = {
-    business: {
-      title: "Tell us about your business",
-      progress: 14,
+    info: {
+      title: "Tell us about your restaurant",
+      description: "Basic information to set up your AI phone agent",
+      progress: 33,
       icon: Store,
     },
-    upload: { title: "Upload your menu", progress: 28, icon: Upload },
-    analyzing: { title: "Reading your menu...", progress: 42, icon: Scan },
-    "confirm-details": {
-      title: "Confirm restaurant details",
-      progress: 57,
-      icon: MapPin,
+    menu: {
+      title: "Add your menu",
+      description: "Paste or type your menu for AI ordering",
+      progress: 66,
+      icon: FileText,
     },
-    "confirm-menu": {
-      title: "Confirm your menu items",
-      progress: 71,
-      icon: Eye,
+    review: {
+      title: "Review & launch",
+      description: "Confirm your details and go live",
+      progress: 100,
+      icon: CheckCircle,
     },
-    generating: {
-      title: "Generating your storefront...",
-      progress: 85,
-      icon: Rocket,
-    },
-    complete: { title: "Ready to go live!", progress: 100, icon: CheckCircle2 },
   };
 
-  const handleBusinessSubmit = () => {
-    if (businessType.trim()) {
-      setCurrentStep("upload");
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type (images and PDFs)
-      const validTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/heic",
-        "application/pdf",
-      ];
-      if (!validTypes.includes(file.type)) {
-        alert("Please upload a valid image (JPG, PNG, HEIC) or PDF file");
-        return;
-      }
-
-      setUploadedFile(file);
-
-      // Create preview for images
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setUploadPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setUploadPreview(null);
-      }
-    }
-  };
-
-  const handleAnalyzeMenu = async () => {
-    if (uploadedFile) {
-      setCurrentStep("analyzing");
-
-      // Simulate API call to analyze menu with AI
-      setTimeout(() => {
-        // Mock extracted restaurant details
-        setRestaurantDetails({
-          name: "Joe's Italian Kitchen",
-          address: "123 Main Street, San Francisco, CA 94102",
-        });
-        setCurrentStep("confirm-details");
-      }, 3000);
-    }
-  };
-
-  const handleConfirmDetails = () => {
-    if (restaurantDetails.name.trim() && restaurantDetails.address.trim()) {
-      setCurrentStep("analyzing");
-
-      // Continue to extract menu items
-      setTimeout(() => {
-        // Mock menu items - replace with actual API call
-        const mockItems: MenuItem[] = [
-          {
-            id: "1",
-            name: "Margherita Pizza",
-            price: 14.99,
-            description: "Fresh mozzarella, tomato sauce, basil",
-            category: "Pizza",
-          },
-          {
-            id: "2",
-            name: "Pepperoni Pizza",
-            price: 16.99,
-            description: "Classic pepperoni with mozzarella",
-            category: "Pizza",
-          },
-          {
-            id: "3",
-            name: "Pasta Carbonara",
-            price: 15.99,
-            description: "Creamy pasta with bacon and parmesan",
-            category: "Pasta",
-          },
-          {
-            id: "4",
-            name: "Lasagna",
-            price: 17.99,
-            description: "Layered pasta with meat sauce and cheese",
-            category: "Pasta",
-          },
-          {
-            id: "5",
-            name: "Caesar Salad",
-            price: 9.99,
-            description: "Romaine lettuce with caesar dressing",
-            category: "Salads",
-          },
-          {
-            id: "6",
-            name: "Caprese Salad",
-            price: 10.99,
-            description: "Fresh mozzarella, tomatoes, and basil",
-            category: "Salads",
-          },
-          {
-            id: "7",
-            name: "Tiramisu",
-            price: 7.99,
-            description: "Classic Italian dessert",
-            category: "Desserts",
-          },
-          {
-            id: "8",
-            name: "Gelato",
-            price: 5.99,
-            description: "Italian ice cream, various flavors",
-            category: "Desserts",
-          },
-        ];
-
-        setMenuItems(mockItems);
-        // Select all items by default
-        setSelectedItems(new Set(mockItems.map((item) => item.id)));
-        setCurrentStep("confirm-menu");
-      }, 2000);
-    }
-  };
-
-  const toggleItemSelection = (itemId: string) => {
-    const newSelection = new Set(selectedItems);
-    if (newSelection.has(itemId)) {
-      newSelection.delete(itemId);
-    } else {
-      newSelection.add(itemId);
-    }
-    setSelectedItems(newSelection);
-  };
-
-  const handleConfirmMenu = () => {
-    if (selectedItems.size > 0) {
-      setCurrentStep("generating");
-
-      // Simulate storefront generation
-      setTimeout(() => {
-        setCurrentStep("complete");
-      }, 4000);
-    }
-  };
-
-  const handleGoLive = () => {
-    // Navigate to the main app/dashboard
-    router.push("/");
-  };
-
+  const steps: Step[] = ["info", "menu", "review"];
+  const currentIndex = steps.indexOf(currentStep);
   const currentConfig = stepConfig[currentStep];
   const StepIcon = currentConfig.icon;
 
-  // Group items by category for better display
-  const itemsByCategory = menuItems.reduce((acc, item) => {
-    const category = item.category || "Other";
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(item);
-    return acc;
-  }, {} as Record<string, MenuItem[]>);
+  const handleNext = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < steps.length) {
+      setCurrentStep(steps[nextIndex]);
+    }
+  };
+
+  const handleBack = () => {
+    const prevIndex = currentIndex - 1;
+    if (prevIndex >= 0) {
+      setCurrentStep(steps[prevIndex]);
+    }
+  };
+
+  const canProceedFromInfo =
+    formData.name.trim() &&
+    formData.location.trim() &&
+    formData.typicalWaitTime.trim();
+
+  const canProceedFromMenu = formData.menu.trim();
+
+  const handleSubmit = async () => {
+    startTransition(async () => {
+      const data = new window.FormData();
+      data.append("name", formData.name);
+      data.append("location", formData.location);
+      data.append("typicalWaitTime", formData.typicalWaitTime);
+      data.append("menu", formData.menu);
+
+      try {
+        await createOrganization(data);
+        // Redirect is handled by the server action
+      } catch (error) {
+        console.error("Failed to create organization:", error);
+      }
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <header className="px-4 py-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900">
             <span className="text-blue-600">Agent</span>Eats
           </h1>
@@ -260,338 +112,320 @@ export default function WelcomePage() {
 
       {/* Main Content */}
       <div className="px-4 pb-12">
-        <div className="max-w-4xl mx-auto">
-          {/* Progress Header */}
+        <div className="max-w-2xl mx-auto">
+          {/* Progress Steps */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <StepIcon className="w-8 h-8 text-primary" />
-                <h1 className="text-3xl font-bold">{currentConfig.title}</h1>
-              </div>
-              <Badge variant="outline" className="text-sm">
-                Step {Object.keys(stepConfig).indexOf(currentStep) + 1} of{" "}
-                {Object.keys(stepConfig).length}
-              </Badge>
+            <div className="flex items-center justify-between mb-6">
+              {steps.map((step, index) => {
+                const config = stepConfig[step];
+                const Icon = config.icon;
+                const isActive = index === currentIndex;
+                const isComplete = index < currentIndex;
+
+                return (
+                  <div key={step} className="flex items-center">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          isComplete
+                            ? "bg-green-500 text-white"
+                            : isActive
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-500"
+                        }`}
+                      >
+                        {isComplete ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : (
+                          <Icon className="w-5 h-5" />
+                        )}
+                      </div>
+                      <span
+                        className={`text-xs mt-2 font-medium ${
+                          isActive ? "text-blue-600" : "text-gray-500"
+                        }`}
+                      >
+                        {step === "info"
+                          ? "Info"
+                          : step === "menu"
+                          ? "Menu"
+                          : "Launch"}
+                      </span>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`w-16 sm:w-24 h-1 mx-2 rounded ${
+                          index < currentIndex ? "bg-green-500" : "bg-gray-200"
+                        }`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <Progress value={currentConfig.progress} className="h-2" />
           </div>
 
-          {/* Step Content */}
-          <Card className="shadow-lg">
-            <CardContent className="pt-6">
-              {/* Step 1: Business Type */}
-              {currentStep === "business" && (
-                <div className="space-y-6">
-                  <div>
-                    <CardDescription className="text-base mb-4">
-                      Tell us about your business so we can customize your
-                      storefront
-                    </CardDescription>
-                    <Input
-                      placeholder="e.g., Italian Restaurant, Coffee Shop, Bakery..."
-                      value={businessType}
-                      onChange={(e) => setBusinessType(e.target.value)}
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && handleBusinessSubmit()
+          {/* Step Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+              <StepIcon className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {currentConfig.title}
+            </h2>
+            <p className="text-gray-600">{currentConfig.description}</p>
+          </div>
+
+          {/* Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            {/* Step 1: Restaurant Info */}
+            {currentStep === "info" && (
+              <div className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Restaurant Name
+                  </label>
+                  <div className="relative">
+                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
                       }
-                      className="text-lg h-12"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow"
+                      placeholder="Joe's Pizza"
                       autoFocus
                     />
                   </div>
-                  <Button
-                    onClick={handleBusinessSubmit}
-                    disabled={!businessType.trim()}
-                    size="lg"
-                    className="w-full"
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="location"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Location
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) =>
+                        setFormData({ ...formData, location: e.target.value })
+                      }
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow"
+                      placeholder="123 Main St, New York, NY"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="typicalWaitTime"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Typical Wait Time
+                  </label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      id="typicalWaitTime"
+                      value={formData.typicalWaitTime}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          typicalWaitTime: e.target.value,
+                        })
+                      }
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow"
+                      placeholder="15-20 minutes"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  disabled={!canProceedFromInfo}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  Continue
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Menu */}
+            {currentStep === "menu" && (
+              <div className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="menu"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Your Menu
+                  </label>
+                  <textarea
+                    id="menu"
+                    value={formData.menu}
+                    onChange={(e) =>
+                      setFormData({ ...formData, menu: e.target.value })
+                    }
+                    rows={12}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent font-mono text-sm transition-shadow"
+                    placeholder={`Enter your menu in markdown format...
+
+Example:
+# Pizza
+- Margherita - $12
+- Pepperoni - $14
+- Hawaiian - $14
+
+# Sides
+- Garlic Bread - $5
+- Caesar Salad - $8
+
+# Drinks
+- Soda - $2
+- Water - $1`}
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Use markdown format: # for categories, - for items with
+                    prices
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleBack}
+                    className="flex-1 border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={!canProceedFromMenu}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                   >
                     Continue
-                  </Button>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Step 2: Upload Menu */}
-              {currentStep === "upload" && (
-                <div className="space-y-6">
-                  <div>
-                    <CardDescription className="text-base mb-4">
-                      Upload a photo or PDF of your menu. We&apos;ll
-                      automatically extract your restaurant details and menu
-                      items.
-                    </CardDescription>
-
-                    {/* File Upload Area */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors">
-                      <input
-                        type="file"
-                        id="menu-upload"
-                        accept="image/jpeg,image/jpg,image/png,image/heic,application/pdf"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="menu-upload"
-                        className="cursor-pointer flex flex-col items-center"
-                      >
-                        {uploadPreview ? (
-                          <div className="space-y-4">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={uploadPreview}
-                              alt="Menu preview"
-                              className="max-h-48 rounded-lg"
-                            />
-                            <p className="text-sm text-muted-foreground">
-                              Click to change file
-                            </p>
-                          </div>
-                        ) : uploadedFile ? (
-                          <div className="space-y-4">
-                            <FileImage className="w-16 h-16 text-primary mx-auto" />
-                            <div>
-                              <p className="font-medium">{uploadedFile.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                Click to change file
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            <Upload className="w-16 h-16 text-gray-400 mx-auto" />
-                            <div>
-                              <p className="font-medium">
-                                Click to upload or drag and drop
-                              </p>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Supported: JPG, PNG, HEIC, or PDF
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </label>
+            {/* Step 3: Review */}
+            {currentStep === "review" && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Store className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-500">
+                        Restaurant Name
+                      </span>
                     </div>
+                    <p className="text-gray-900 font-medium">{formData.name}</p>
                   </div>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => setCurrentStep("business")}
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      onClick={handleAnalyzeMenu}
-                      disabled={!uploadedFile}
-                      size="lg"
-                      className="w-full"
-                    >
-                      Analyze Menu
-                    </Button>
-                  </div>
-                </div>
-              )}
 
-              {/* Step 3: Analyzing */}
-              {currentStep === "analyzing" && (
-                <div className="py-12 space-y-6">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <Spinner className="w-16 h-16 mb-6" />
-                    <h2 className="text-2xl font-semibold mb-2">
-                      Reading your menu...
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Our AI is extracting your restaurant details and menu
-                      items...
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-500">
+                        Location
+                      </span>
+                    </div>
+                    <p className="text-gray-900 font-medium">
+                      {formData.location}
                     </p>
                   </div>
-                </div>
-              )}
 
-              {/* Step 4: Confirm Restaurant Details */}
-              {currentStep === "confirm-details" && (
-                <div className="space-y-6">
-                  <div>
-                    <CardDescription className="text-base mb-4">
-                      We extracted these details from your menu. Please confirm
-                      or edit them.
-                    </CardDescription>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Restaurant Name
-                        </label>
-                        <Input
-                          placeholder="Restaurant name"
-                          value={restaurantDetails.name}
-                          onChange={(e) =>
-                            setRestaurantDetails({
-                              ...restaurantDetails,
-                              name: e.target.value,
-                            })
-                          }
-                          className="text-lg h-12"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Address
-                        </label>
-                        <Input
-                          placeholder="Full address"
-                          value={restaurantDetails.address}
-                          onChange={(e) =>
-                            setRestaurantDetails({
-                              ...restaurantDetails,
-                              address: e.target.value,
-                            })
-                          }
-                          className="text-lg h-12"
-                        />
-                      </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-500">
+                        Wait Time
+                      </span>
+                    </div>
+                    <p className="text-gray-900 font-medium">
+                      {formData.typicalWaitTime}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-500">
+                        Menu Preview
+                      </span>
+                    </div>
+                    <pre className="text-gray-900 text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                      {formData.menu}
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-900">
+                        Ready to launch!
+                      </p>
+                      <p className="text-sm text-blue-700">
+                        Your AI phone agent will be ready to take orders
+                        immediately after setup.
+                      </p>
                     </div>
                   </div>
-                  <Button
-                    onClick={handleConfirmDetails}
-                    disabled={
-                      !restaurantDetails.name.trim() ||
-                      !restaurantDetails.address.trim()
-                    }
-                    size="lg"
-                    className="w-full"
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleBack}
+                    disabled={isPending}
+                    className="flex-1 border-2 border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                   >
-                    Confirm & Continue
-                  </Button>
-                </div>
-              )}
-
-              {/* Step 5: Confirm Menu Items */}
-              {currentStep === "confirm-menu" && (
-                <div className="space-y-6">
-                  <div>
-                    <CardDescription className="text-base mb-4">
-                      We found {menuItems.length} items. Review and select what
-                      you&apos;d like to include.
-                    </CardDescription>
-                    <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
-                      {Object.entries(itemsByCategory).map(
-                        ([category, items]) => (
-                          <div key={category}>
-                            <h3 className="font-semibold text-lg mb-3 sticky top-0 bg-background py-2">
-                              {category}
-                            </h3>
-                            <div className="space-y-2">
-                              {items.map((item) => (
-                                <div
-                                  key={item.id}
-                                  onClick={() => toggleItemSelection(item.id)}
-                                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                                    selectedItems.has(item.id)
-                                      ? "border-primary bg-primary/5"
-                                      : "border-gray-200 hover:border-gray-300"
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <h4 className="font-medium">
-                                          {item.name}
-                                        </h4>
-                                        {selectedItems.has(item.id) && (
-                                          <CheckCircle2 className="w-5 h-5 text-primary" />
-                                        )}
-                                      </div>
-                                      {item.description && (
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                          {item.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <span className="font-semibold text-lg ml-4">
-                                      ${item.price.toFixed(2)}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-4">
-                      {selectedItems.size} of {menuItems.length} items selected
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleConfirmMenu}
-                    disabled={selectedItems.size === 0}
-                    size="lg"
-                    className="w-full"
+                    <ArrowLeft className="w-5 h-5" />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isPending}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                   >
-                    Confirm Selection
-                  </Button>
+                    {isPending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      <>
+                        Complete Setup
+                        <CheckCircle className="w-5 h-5" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              )}
-
-              {/* Step 6: Generating */}
-              {currentStep === "generating" && (
-                <div className="py-12 space-y-6">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <Loader2 className="w-16 h-16 mb-6 animate-spin text-primary" />
-                    <h2 className="text-2xl font-semibold mb-2">
-                      Creating your storefront
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Hang tight! We&apos;re setting up your beautiful online
-                      ordering system...
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 7: Complete */}
-              {currentStep === "complete" && (
-                <div className="py-12 space-y-8">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
-                      <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h2 className="text-3xl font-bold mb-3">
-                      Your storefront is ready!
-                    </h2>
-                    <p className="text-muted-foreground text-lg max-w-md">
-                      You&apos;re all set to start accepting orders. Let&apos;s
-                      get you live!
-                    </p>
-                  </div>
-                  <div className="space-y-3">
-                    <Button
-                      onClick={handleGoLive}
-                      size="lg"
-                      className="w-full text-lg h-14"
-                    >
-                      <Rocket className="w-5 h-5 mr-2" />
-                      Go Live Now
-                    </Button>
-                    <p className="text-center text-sm text-muted-foreground">
-                      You can customize your storefront anytime from the
-                      dashboard
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </div>
 
           {/* Help Text */}
-          {currentStep !== "analyzing" &&
-            currentStep !== "generating" &&
-            currentStep !== "complete" && (
-              <p className="text-center text-sm text-muted-foreground mt-6">
-                Need help? Contact our support team at support@agenteats.com
-              </p>
-            )}
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Need help? Contact our support team at support@agenteats.com
+          </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
