@@ -180,9 +180,9 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
                 onDrop={(e) => handleDrop(e, column.id)}
               >
                 {/* Column Header */}
-                <div className="p-4 border-b border-gray-200 bg-white rounded-t-lg">
+                <div className="p-4 border-b border-gray-200 bg-white rounded-t-lg flex justify-between items-center">
                   <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-md text-gray-500 border px-2 py-1 font-bold rounded-full">
                     {getOrdersByStatus(column.id).length} orders
                   </span>
                 </div>
