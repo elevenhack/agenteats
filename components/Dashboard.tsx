@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Eye, Package, Settings, Phone, Activity, DollarSign, Clock, Menu } from 'lucide-react'
 import Link from 'next/link'
 import KanbanBoardWrapper from './KanbanBoardWrapper'
@@ -23,7 +23,12 @@ export default function Dashboard() {
       case 'overview':
         return <OverviewView />
       case 'live':
-        return <LiveView onKanbanOpen={() => setShowKanban(true)} />
+        // Open kanban immediately and switch back to overview
+        if (!showKanban) {
+          setShowKanban(true)
+          setActiveView('overview')
+        }
+        return <OverviewView />
       case 'orders':
         return <OrdersView />
       case 'settings':
@@ -185,14 +190,6 @@ function OverviewView() {
   )
 }
 
-function LiveView({ onKanbanOpen }: { onKanbanOpen: () => void }) {
-  useEffect(() => {
-    // Open the kanban board after component mounts to avoid setState during render
-    onKanbanOpen()
-  }, [onKanbanOpen])
-  
-  return null
-}
 
 function OrdersView() {
   return (
