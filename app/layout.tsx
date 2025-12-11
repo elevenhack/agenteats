@@ -7,16 +7,11 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains-mono',
   subsets: ['latin'],
 })
 
@@ -33,8 +28,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
+        <body className={`${jetbrainsMono.variable} antialiased font-mono`}>
+          <header className="flex justify-between items-center p-4 gap-4 h-16 border-b">
+            <p className="text-lg font-mono">AgentEats</p>
+<div className="flex items-center gap-4">
             <SignedOut>
               <SignInButton />
               <SignUpButton>
@@ -46,6 +43,7 @@ export default function RootLayout({
             <SignedIn>
               <UserButton />
             </SignedIn>
+            </div>
           </header>
           {children}
         </body>

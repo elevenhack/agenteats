@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { Eye, Package, Settings, Phone, Activity, DollarSign, Clock, Menu } from 'lucide-react'
 import Link from 'next/link'
+import KanbanBoard from './KanbanBoard'
 
 type DashboardView = 'overview' | 'live' | 'orders' | 'settings'
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<DashboardView>('overview')
+  const [showKanban, setShowKanban] = useState(false)
 
   const navigationItems = [
     { id: 'overview', label: 'Overview', icon: Activity },
@@ -21,7 +23,7 @@ export default function Dashboard() {
       case 'overview':
         return <OverviewView />
       case 'live':
-        return <LiveView />
+        return <LiveView onKanbanOpen={() => setShowKanban(true)} />
       case 'orders':
         return <OrdersView />
       case 'settings':
@@ -33,22 +35,12 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">AgentEats</h1>
-              <span className="ml-2 text-sm text-gray-500">Dashboard</span>
-            </div>
-          </div>
-        </div>
-      </header>
+ 
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=" mx-auto ">
         <div className="flex gap-8">
           {/* Sidebar Navigation */}
-          <nav className="w-64 bg-white rounded-lg shadow-sm p-6">
+          <nav className="w-64 bg-white h-screen border-r p-6 ">
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon
@@ -79,11 +71,17 @@ export default function Dashboard() {
           </nav>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 mt-12 mx-auto max-w-6xl">
             {renderContent()}
           </div>
         </div>
       </div>
+
+      {/* Kanban Board Overlay */}
+      <KanbanBoard 
+        isOpen={showKanban} 
+        onClose={() => setShowKanban(false)} 
+      />
     </div>
   )
 }
@@ -187,12 +185,13 @@ function OverviewView() {
   )
 }
 
-function LiveView() {
+function LiveView({ onKanbanOpen }: { onKanbanOpen: () => void }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors" onClick={onKanbanOpen}>
       <div>
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Live View</h2>
         <p className="text-gray-600">Monitor incoming calls and AI agent performance in real-time.</p>
+        <p className="text-sm text-blue-600 mt-2">💡 Click anywhere to open order management board</p>
       </div>
 
       {/* Status Indicator */}
