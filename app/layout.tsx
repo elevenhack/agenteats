@@ -29,7 +29,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${jetbrainsMono.variable} antialiased font-mono`}>
-          <header className="flex justify-between items-center p-4 gap-4 h-16 border-b sticky top-0 z-10 bg-white">
+          <header className="flex justify-between items-center p-4 gap-4 h-16 border-b sticky top-0 z-20 bg-white">
             <p className="text-lg font-mono">AgentEats</p>
 <div className="flex items-center gap-4">
             <SignedOut>
