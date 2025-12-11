@@ -36,10 +36,6 @@ interface OrderExtraction {
   orders: string;
 }
 
-export async function GET() {
-  return NextResponse.json({ status: "webhook listening" }, { status: 200 });
-}
-
 export async function POST(req: NextRequest) {
   try {
     const event: WebhookEvent = await req.json();
