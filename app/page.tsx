@@ -2,6 +2,8 @@ import { Phone, DollarSign, Clock, Users, CheckCircle, ArrowRight } from 'lucide
 import { SignedIn, SignedOut } from '@clerk/nextjs'
 import Dashboard from '@/components/Dashboard'
 import AgentDemo from '@/components/AgentDemo'
+import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern"
+import { cn } from '@/lib/utils'
 
 export default function Home() {
   return (
@@ -18,9 +20,10 @@ export default function Home() {
 
 function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <main className="min-h-screen ">
       {/* Hero Section */}
       <section className="px-4 py-20 mx-auto max-w-7xl">
+
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
             <span className="text-blue-600">Agent</span>Eats
@@ -33,18 +36,14 @@ function LandingPage() {
               Get Started Free
               <ArrowRight className="w-5 h-5" />
             </button>
-            <button className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
-              Watch Demo
-            </button>
+            
           </div>
         </div>
 
-        {/* Demo Agent */}
-        <div className="mb-16">
-          <AgentDemo />
-        </div>
+       
 
-        {/* Stats */}
+      </section>
+ {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-600 mb-2">24/7</div>
@@ -59,8 +58,10 @@ function LandingPage() {
             <div className="text-gray-600">Order Accuracy</div>
           </div>
         </div>
-      </section>
-
+        {/* Demo Agent */}
+        <div className="mb-16">
+          <AgentDemo />
+        </div>
       {/* Problem Section */}
       <section className="px-4 py-20 bg-white">
         <div className="max-w-6xl mx-auto">
