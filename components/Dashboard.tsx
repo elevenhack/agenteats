@@ -42,10 +42,10 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
  
 
-      <div className=" mx-auto ">
-        <div className="flex gap-8">
+      <div className=" grid grid-cols-[320px_1fr] gap-4">
+    
           {/* Sidebar Navigation */}
-          <nav className="w-64 bg-white h-screen border-r p-6 ">
+          <nav className=" bg-white h-[calc(100vh-64px)] border-r p-6  sticky top-[64px]">
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon
@@ -76,9 +76,9 @@ export default function Dashboard() {
           </nav>
 
           {/* Main Content */}
-          <div className="flex-1 mt-12 mx-auto max-w-6xl">
+          <div className="flex-1 mt-12 mx-auto max-w-6xl w-full">
             {renderContent()}
-          </div>
+   
         </div>
       </div>
 

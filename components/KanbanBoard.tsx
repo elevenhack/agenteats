@@ -163,6 +163,9 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
     if (draggedOrder) {
       moveOrderToStatus(draggedOrder.id, columnId as Order['status'])
     }
+    
+    // Clear the dragged order state to remove transparency
+    setDraggedOrder(null)
   }
 
   return (
@@ -189,12 +192,12 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
         </div>
 
         {/* Kanban Board */}
-        <div className="flex-1 p-6 overflow-hidden">
-          <div className="grid grid-cols-4 gap-6 h-full">
+        <div className="flex-1 overflow-hidden">
+          <div className="grid grid-cols-4 h-full">
             {COLUMNS.map((column) => (
               <div
                 key={column.id}
-                className={`flex flex-col rounded-lg border-2 ${column.color} ${
+                className={`flex flex-col r border-r-2 last:border-r-0 ${column.color} ${
                   dragOverColumn === column.id ? 'border-blue-400 bg-blue-100' : ''
                 } transition-colors`}
                 onDragOver={handleDragOver}
@@ -219,31 +222,17 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
                       onDragStart={(e) => handleDragStart(e, order)}
                       onDragEnd={handleDragEnd}
                       onClick={() => moveOrderToNextStatus(order.id)}
-                      className={`bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-all ${
+                      className={`bg-white  rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-all ${
                         draggedOrder?.id === order.id ? 'opacity-50 rotate-2' : ''
                       }`}
                     >
                       {/* Order Header */}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between border-b p-4">
                         <span className="font-semibold text-gray-900">#{order.id}</span>
                         <span className="text-sm text-gray-500">{order.time}</span>
-                      </div>
-
-                      {/* Customer Info */}
+                      </div>        {/* Order Items */}
                       <div className="mb-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium text-gray-900">{order.customer}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">{order.phone}</span>
-                        </div>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="mb-3">
-                        <div className="text-sm text-gray-600 space-y-1">
+                        <div className="text-xl text-gray-600 space-y-2 p-4">
                           {order.items.map((item, index) => (
                             <div key={index} className="flex items-center gap-1">
                               <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -251,19 +240,29 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
                             </div>
                           ))}
                         </div>
+                        
                       </div>
 
-                      {/* Order Total */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-green-600 font-semibold">
+
+                      {/* Customer Info */}
+                      <div className="p-4 border-t flex justify-between">
+                        <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">{order.customer}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">{order.phone}</span>
+                        </div>
+                      </div>
+                    <div className="flex items-center gap-1 text-green-600 font-semibold ">
                           <DollarSign className="w-4 h-4" />
                           <span>{order.total.replace('$', '')}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-gray-500 text-xs">
-                          <Clock className="w-3 h-3" />
-                          <span>Click to advance</span>
-                        </div>
-                      </div>
+    </div>  
+              
+                    
                     </div>
                   ))}
 
