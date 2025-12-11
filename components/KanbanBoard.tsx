@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { X, Clock, User, DollarSign, Phone } from 'lucide-react'
+import { useState, useRef, useEffect, useTransition } from 'react'
+import { X, Clock, User, DollarSign, Phone, Loader2 } from 'lucide-react'
+import { getOrders, updateOrderStatus } from '@/app/actions/orders'
 
 interface Order {
   id: string
   customer: string
   phone: string
   items: string[]
-  total: string
   time: string
   status: 'new' | 'in_progress' | 'waiting_customer' | 'done'
 }
@@ -25,59 +25,61 @@ const COLUMNS = [
   { id: 'done', title: 'Done', color: 'bg-green-50 border-green-200' }
 ]
 
+// Parse database order to UI order format
+function parseDbOrder(dbOrder: { id: string; whoItsFor: string; orders: string; status: string; createdAt: Date }): Order {
+  // Parse whoItsFor as "name|phone"
+  const [customer, phone] = dbOrder.whoItsFor.split('|')
+  
+  // Parse orders - could be newline or comma separated
+  const items = dbOrder.orders
+    .split(/[\n,]/)
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+  
+  // Format time from createdAt
+  const time = new Date(dbOrder.createdAt).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  })
+
+  return {
+    id: dbOrder.id,
+    customer: customer?.trim() || 'Unknown',
+    phone: phone?.trim() || '',
+    items,
+    time,
+    status: dbOrder.status as Order['status']
+  }
+}
+
 export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: '1247',
-      customer: 'John Smith',
-      phone: '+1 (555) 123-4567',
-      items: ['2x Margherita Pizza', '1x Caesar Salad'],
-      total: '$32.50',
-      time: '2:15 PM',
-      status: 'new'
-    },
-    {
-      id: '1246',
-      customer: 'Sarah Johnson',
-      phone: '+1 (555) 987-6543',
-      items: ['1x Chicken Burger', '1x Fries'],
-      total: '$18.75',
-      time: '2:08 PM',
-      status: 'in_progress'
-    },
-    {
-      id: '1245',
-      customer: 'Mike Wilson',
-      phone: '+1 (555) 456-7890',
-      items: ['3x Tacos', '1x Guacamole'],
-      total: '$24.00',
-      time: '1:45 PM',
-      status: 'waiting_customer'
-    },
-    {
-      id: '1244',
-      customer: 'Lisa Brown',
-      phone: '+1 (555) 321-9876',
-      items: ['1x Pepperoni Pizza', '2x Garlic Bread'],
-      total: '$28.99',
-      time: '1:30 PM',
-      status: 'done'
-    },
-    {
-      id: '1243',
-      customer: 'David Lee',
-      phone: '+1 (555) 654-3210',
-      items: ['1x Chicken Parmesan', '1x Side Salad'],
-      total: '$22.50',
-      time: '1:15 PM',
-      status: 'new'
-    }
-  ])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isPending, startTransition] = useTransition()
 
   const [draggedOrder, setDraggedOrder] = useState<Order | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
 
   const dragCounter = useRef(0)
+
+  // Fetch orders from database
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(true)
+      getOrders()
+        .then((dbOrders) => {
+          const parsedOrders = dbOrders.map(parseDbOrder)
+          setOrders(parsedOrders)
+        })
+        .catch((error) => {
+          console.error('Failed to fetch orders:', error)
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    }
+  }, [isOpen])
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -103,26 +105,72 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
   }
 
   const moveOrderToNextStatus = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId)
+    if (!order) return
+
+    const currentIndex = COLUMNS.findIndex(col => col.id === order.status)
+    const nextIndex = Math.min(currentIndex + 1, COLUMNS.length - 1)
+    const newStatus = COLUMNS[nextIndex].id as Order['status']
+
+    // Optimistic update
     setOrders(prevOrders => {
-      return prevOrders.map(order => {
-        if (order.id === orderId) {
-          const currentIndex = COLUMNS.findIndex(col => col.id === order.status)
-          const nextIndex = Math.min(currentIndex + 1, COLUMNS.length - 1)
-          return { ...order, status: COLUMNS[nextIndex].id as Order['status'] }
+      return prevOrders.map(o => {
+        if (o.id === orderId) {
+          return { ...o, status: newStatus }
         }
-        return order
+        return o
       })
+    })
+
+    // Persist to database
+    startTransition(async () => {
+      try {
+        await updateOrderStatus(orderId, newStatus)
+      } catch (error) {
+        console.error('Failed to update order status:', error)
+        // Revert on error
+        setOrders(prevOrders => {
+          return prevOrders.map(o => {
+            if (o.id === orderId) {
+              return { ...o, status: order.status }
+            }
+            return o
+          })
+        })
+      }
     })
   }
 
   const moveOrderToStatus = (orderId: string, newStatus: Order['status']) => {
+    const order = orders.find(o => o.id === orderId)
+    if (!order) return
+
+    // Optimistic update
     setOrders(prevOrders => {
-      return prevOrders.map(order => {
-        if (order.id === orderId) {
-          return { ...order, status: newStatus }
+      return prevOrders.map(o => {
+        if (o.id === orderId) {
+          return { ...o, status: newStatus }
         }
-        return order
+        return o
       })
+    })
+
+    // Persist to database
+    startTransition(async () => {
+      try {
+        await updateOrderStatus(orderId, newStatus)
+      } catch (error) {
+        console.error('Failed to update order status:', error)
+        // Revert on error
+        setOrders(prevOrders => {
+          return prevOrders.map(o => {
+            if (o.id === orderId) {
+              return { ...o, status: order.status }
+            }
+            return o
+          })
+        })
+      }
     })
   }
 
@@ -193,91 +241,96 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
 
         {/* Kanban Board */}
         <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-4 h-full">
-            {COLUMNS.map((column) => (
-              <div
-                key={column.id}
-                className={`flex flex-col r border-r-2 last:border-r-0 ${column.color} ${
-                  dragOverColumn === column.id ? 'border-blue-400 bg-blue-100' : ''
-                } transition-colors`}
-                onDragOver={handleDragOver}
-                onDragEnter={(e) => handleDragEnter(e, column.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, column.id)}
-              >
-                {/* Column Header */}
-                <div className="p-4 border-b border-gray-200 bg-white rounded-t-lg flex justify-between items-center">
-                  <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                  <span className="text-md text-gray-500 border px-2 py-1 font-bold rounded-full">
-                    {getOrdersByStatus(column.id).length} orders
-                  </span>
-                </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <span className="ml-3 text-gray-600">Loading orders...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 h-full">
+              {COLUMNS.map((column) => (
+                <div
+                  key={column.id}
+                  className={`flex flex-col r border-r-2 last:border-r-0 ${column.color} ${
+                    dragOverColumn === column.id ? 'border-blue-400 bg-blue-100' : ''
+                  } transition-colors`}
+                  onDragOver={handleDragOver}
+                  onDragEnter={(e) => handleDragEnter(e, column.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, column.id)}
+                >
+                  {/* Column Header */}
+                  <div className="p-4 border-b border-gray-200 bg-white rounded-t-lg flex justify-between items-center">
+                    <h3 className="font-semibold text-gray-900">{column.title}</h3>
+                    <span className="text-md text-gray-500 border px-2 py-1 font-bold rounded-full">
+                      {getOrdersByStatus(column.id).length} orders
+                    </span>
+                  </div>
 
-                {/* Column Content */}
-                <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-                  {getOrdersByStatus(column.id).map((order) => (
-                    <div
-                      key={order.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, order)}
-                      onDragEnd={handleDragEnd}
-                      onClick={() => moveOrderToNextStatus(order.id)}
-                      className={`bg-white  rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-all ${
-                        draggedOrder?.id === order.id ? 'opacity-50 rotate-2' : ''
-                      }`}
-                    >
-                      {/* Order Header */}
-                      <div className="flex items-center justify-between border-b p-4">
-                        <span className="font-semibold text-gray-900">#{order.id}</span>
-                        <span className="text-sm text-gray-500">{order.time}</span>
-                      </div>        {/* Order Items */}
-                      <div className="mb-3">
-                        <div className="text-xl text-gray-600 space-y-2 p-4">
-                          {order.items.map((item, index) => (
-                            <div key={index} className="flex items-center gap-1">
-                              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                              <span>{item}</span>
+                  {/* Column Content */}
+                  <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                    {getOrdersByStatus(column.id).map((order) => (
+                      <div
+                        key={order.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, order)}
+                        onDragEnd={handleDragEnd}
+                        onClick={() => moveOrderToNextStatus(order.id)}
+                        className={`bg-white  rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition-all ${
+                          draggedOrder?.id === order.id ? 'opacity-50 rotate-2' : ''
+                        }`}
+                      >
+                        {/* Order Header */}
+                        <div className="flex items-center justify-between border-b p-4">
+                          <span className="font-semibold text-gray-900">#{order.id.slice(-4)}</span>
+                          <span className="text-sm text-gray-500">{order.time}</span>
+                        </div>        {/* Order Items */}
+                        <div className="mb-3">
+                          <div className="text-xl text-gray-600 space-y-2 p-4">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="flex items-center gap-1">
+                                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                          
+                        </div>
+
+
+                        {/* Customer Info */}
+                        <div className="p-4 border-t flex justify-between">
+                          <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <User className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-600">{order.customer}</span>
+                          </div>
+                          {order.phone && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm text-gray-600">{order.phone}</span>
                             </div>
-                          ))}
+                          )}
                         </div>
-                        
-                      </div>
-
-
-                      {/* Customer Info */}
-                      <div className="p-4 border-t flex justify-between">
-                        <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">{order.customer}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">{order.phone}</span>
-                        </div>
-                      </div>
-                    <div className="flex items-center gap-1 text-green-600 font-semibold ">
-                          <DollarSign className="w-4 h-4" />
-                          <span>{order.total.replace('$', '')}</span>
-                        </div>
-    </div>  
+  </div>  
               
                     
-                    </div>
-                  ))}
-
-                  {getOrdersByStatus(column.id).length === 0 && (
-                    <div className="text-center py-8 text-gray-400">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <Clock className="w-6 h-6" />
                       </div>
-                      <p className="text-sm">No orders in this stage</p>
-                    </div>
-                  )}
+                    ))}
+
+                    {getOrdersByStatus(column.id).length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Clock className="w-6 h-6" />
+                        </div>
+                        <p className="text-sm">No orders in this stage</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -287,6 +340,7 @@ export default function KanbanBoard({ isOpen, onClose }: KanbanBoardProps) {
               Total orders: {orders.length} | 
               Active: {orders.filter(o => o.status !== 'done').length} | 
               Completed: {orders.filter(o => o.status === 'done').length}
+              {isPending && <span className="ml-2 text-blue-600">(Saving...)</span>}
             </div>
             <div className="text-sm text-gray-500">
               💡 Tip: Drag orders between columns or click cards to advance them
