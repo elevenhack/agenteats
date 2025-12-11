@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Eye, Package, Settings, Phone, Activity, DollarSign, Clock, Menu } from 'lucide-react'
+import { useState, useEffect, useTransition } from 'react'
+import { Eye, Package, Settings, Phone, Activity, DollarSign, Clock, Menu, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import KanbanBoardWrapper from './KanbanBoardWrapper'
+import { getOrders, updateOrderStatus } from '@/app/actions/orders'
 
 type DashboardView = 'overview' | 'live' | 'orders' | 'settings'
 

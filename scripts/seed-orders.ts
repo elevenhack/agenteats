@@ -24,22 +24,22 @@ const sampleOrders = [
   {
     whoItsFor: 'Mike Wilson',
     orders: '1x BBQ Chicken Pizza, 3x Buffalo Wings, 1x Lemonade',
-    status: 'preparing',
+    status: 'in_progress',
   },
   {
     whoItsFor: 'Emily Brown',
     orders: '1x Vegetarian Supreme, 1x Mushroom Soup, 2x Water',
-    status: 'preparing',
+    status: 'in_progress',
   },
   {
     whoItsFor: 'David Lee',
     orders: '3x Meat Lovers Pizza, 2x Cheesy Breadsticks, 4x Pepsi',
-    status: 'ready',
+    status: 'waiting_customer',
   },
   {
     whoItsFor: 'Jessica Taylor',
     orders: '1x Hawaiian Pizza, 1x Greek Salad, 1x Iced Tea',
-    status: 'ready',
+    status: 'waiting_customer',
   },
   {
     whoItsFor: 'Chris Martinez',
@@ -49,7 +49,7 @@ const sampleOrders = [
   {
     whoItsFor: 'Amanda Garcia',
     orders: '1x Spicy Italian, 2x Mozzarella Sticks, 1x Root Beer',
-    status: 'delivered',
+    status: 'done',
   },
   {
     whoItsFor: 'Ryan Thomas',
@@ -59,7 +59,7 @@ const sampleOrders = [
   {
     whoItsFor: 'Nicole Anderson',
     orders: '2x Capricciosa, 1x Bruschetta, 2x San Pellegrino',
-    status: 'preparing',
+    status: 'in_progress',
   },
 ]
 
