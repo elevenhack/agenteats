@@ -529,11 +529,66 @@ function OrdersView() {
 }
 
 function SettingsView() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [name, setName] = useState('')
+  const [location, setLocation] = useState('')
+  const [typicalWaitTime, setTypicalWaitTime] = useState('')
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      setIsLoading(true)
+      try {
+        const { getOrganizationSettings } = await import('@/app/actions/settings')
+        const settings = await getOrganizationSettings()
+        if (settings) {
+          setName(settings.name || '')
+          setLocation(settings.location || '')
+          setTypicalWaitTime(settings.typicalWaitTime || '')
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadSettings()
+  }, [])
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    setSaveSuccess(false)
+    try {
+      const { updateOrganizationSettings } = await import('@/app/actions/settings')
+      const formData = new FormData()
+      formData.append('name', name)
+      formData.append('location', location)
+      formData.append('typicalWaitTime', typicalWaitTime)
+      await updateOrganizationSettings(formData)
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <span className="ml-3 text-gray-600">Loading settings...</span>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Settings</h2>
-        <p className="text-gray-600">Configure your AgentEats AI phone agent.</p>
+        <p className="text-gray-600">Configure your restaurant information.</p>
       </div>
 
       {/* Restaurant Information */}
@@ -544,43 +599,33 @@ function SettingsView() {
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Restaurant Name</label>
-            <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue="Mario&apos;s Pizza" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-            <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue="+1 (555) 123-PIZZA" />
+            <input 
+              type="text" 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your restaurant name"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-            <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue="123 Main St, Anytown, ST 12345" />
-          </div>
-        </div>
-      </div>
-
-      {/* AI Agent Settings */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">AI Agent Settings</h3>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Agent Voice</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Professional Female</option>
-              <option>Professional Male</option>
-              <option>Friendly Female</option>
-              <option>Friendly Male</option>
-            </select>
+            <input 
+              type="text" 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter your restaurant address"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Greeting Message</label>
-            <textarea className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={3} defaultValue="Thank you for calling Mario's Pizza! How can I help you today?" />
-          </div>
-          <div>
-            <label className="flex items-center">
-              <input type="checkbox" className="mr-2" defaultChecked />
-              <span className="text-sm text-gray-700">Enable order confirmations via SMS</span>
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Typical Wait Time</label>
+            <input 
+              type="text" 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              value={typicalWaitTime}
+              onChange={(e) => setTypicalWaitTime(e.target.value)}
+              placeholder="e.g., 15-20 minutes"
+            />
           </div>
         </div>
       </div>
@@ -591,16 +636,26 @@ function SettingsView() {
           <h3 className="text-lg font-semibold text-gray-900">Menu Management</h3>
         </div>
         <div className="p-6">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            Upload Menu
-          </button>
-          <p className="text-sm text-gray-600 mt-2">Upload your current menu so the AI can take accurate orders.</p>
+          <Link href="/menu">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              Manage Menu
+            </button>
+          </Link>
+          <p className="text-sm text-gray-600 mt-2">View and edit your menu so the AI can take accurate orders.</p>
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-          Save Changes
+      <div className="flex items-center justify-end gap-4">
+        {saveSuccess && (
+          <span className="text-green-600 text-sm font-medium">Settings saved successfully!</span>
+        )}
+        <button 
+          onClick={handleSave}
+          disabled={isSaving}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+        >
+          {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isSaving ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
     </div>

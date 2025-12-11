@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { fetchMarkdownFromUrl } from "@/app/actions/browser-rendering";
+import Markdown from "react-markdown";
+import {
+  fetchContentFromUrl,
+  type FetchResult,
+} from "@/app/actions/browser-rendering";
 import {
   extractMenuData,
   type MenuExtractionResult,
@@ -19,14 +23,6 @@ import {
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 type FileContent =
   | { type: "text"; content: string }
@@ -55,8 +51,17 @@ export default function ScrapeTestPage() {
     setExtractionResult(null);
 
     try {
-      const result = await fetchMarkdownFromUrl(url);
-      setFileContent({ type: "text", content: result });
+      const result: FetchResult = await fetchContentFromUrl(url);
+
+      if (result.type === "pdf") {
+        setFileContent({
+          type: "pdf",
+          base64: result.content,
+          fileName: url.split("/").pop() || "document.pdf",
+        });
+      } else {
+        setFileContent({ type: "text", content: result.content });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to scrape URL");
     } finally {
@@ -320,66 +325,18 @@ export default function ScrapeTestPage() {
                     Restaurant Information
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground">Name</Label>
-                      <p className="text-lg font-medium">
-                        {extractionResult.restaurant.name || "Not found"}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Address</Label>
-                      <p className="text-lg font-medium">
-                        {extractionResult.restaurant.address || "Not found"}
-                      </p>
-                    </div>
-                  </div>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <Markdown>{extractionResult.restaurant.markdown}</Markdown>
                 </CardContent>
               </Card>
 
               {/* Menu Items */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
-                    Menu Items ({extractionResult.menuItems.length})
-                  </CardTitle>
+                  <CardTitle className="text-lg">Menu Items</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  {extractionResult.menuItems.length > 0 ? (
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Item</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Price</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {extractionResult.menuItems.map((item, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium">
-                                {item.name}
-                              </TableCell>
-                              <TableCell className="text-muted-foreground max-w-xs truncate">
-                                {item.description || "-"}
-                              </TableCell>
-                              <TableCell>{item.category || "-"}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                {item.price}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      No menu items found in the content.
-                    </p>
-                  )}
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <Markdown>{extractionResult.menuItems}</Markdown>
                 </CardContent>
               </Card>
             </div>
