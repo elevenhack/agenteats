@@ -13,7 +13,7 @@ import { ShimmeringText } from "@/components/ui/shimmering-text"
 
 const DEFAULT_AGENT = {
   agentId: "agent_1901kc5yp9h7fzfb0h73rymj6zks",
-  name: "Flying Horse Takapuna (demo not a real order)",
+  name: "Flying Horse Takapuna",
   description: "Tap to start voice chat and place an order",
 }
 
@@ -151,7 +151,7 @@ export default function AgentDemo() {
           disabled={isTransitioning}
           size="icon"
           variant={isCallActive ? "secondary" : "default"}
-          className="h-12 w-12 rounded-full"
+          className="h-12 w-40 rounded-full"
         >
           <AnimatePresence mode="wait">
             {isTransitioning ? (
@@ -185,7 +185,7 @@ export default function AgentDemo() {
                 <PhoneIcon className="h-5 w-5" />
               </motion.div>
             )}
-          </AnimatePresence>
+          </AnimatePresence> Call
         </Button>
       </div>
     </Card>
