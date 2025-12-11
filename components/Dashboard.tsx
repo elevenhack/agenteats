@@ -76,7 +76,7 @@ export default function Dashboard() {
           </nav>
 
           {/* Main Content */}
-          <div className="flex-1 mt-12 mx-auto max-w-6xl">
+          <div className="flex-1 mt-12 mx-auto max-w-6xl w-full">
             {renderContent()}
    
         </div>
