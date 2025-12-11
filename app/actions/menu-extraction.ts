@@ -8,20 +8,12 @@ const openai = new OpenAI({
 });
 
 export interface RestaurantInfo {
-  name: string | null;
-  address: string | null;
-}
-
-export interface MenuItem {
-  name: string;
-  description?: string;
-  price: string;
-  category?: string;
+  markdown: string;
 }
 
 export interface MenuExtractionResult {
   restaurant: RestaurantInfo;
-  menuItems: MenuItem[];
+  menuItems: string; // markdown formatted menu
 }
 
 export type ContentInput =
@@ -80,12 +72,14 @@ export async function extractRestaurantInfo(
       {
         role: "system",
         content: `You are a data extraction assistant. Extract the restaurant name and address from the provided content (text or image).
-Return your response as a JSON object with the following structure:
-{
-  "name": "Restaurant Name or null if not found",
-  "address": "Full address or null if not found"
-}
-Only return the JSON object, no other text.`,
+
+Return your response in clean markdown format like this:
+
+# Restaurant Name
+
+**Address:** Full street address, city, state, zip
+
+If information is not found, indicate "Not found" for that field.`,
       },
       {
         role: "user",
@@ -93,24 +87,13 @@ Only return the JSON object, no other text.`,
       },
     ],
     temperature: 0,
-    response_format: { type: "json_object" },
   });
 
   const content = response.choices[0]?.message?.content;
-  if (!content) {
-    return { name: null, address: null };
-  }
-
-  try {
-    return JSON.parse(content) as RestaurantInfo;
-  } catch {
-    return { name: null, address: null };
-  }
+  return { markdown: content || "No restaurant information found." };
 }
 
-export async function extractMenuItems(
-  input: ContentInput
-): Promise<MenuItem[]> {
+export async function extractMenuItems(input: ContentInput): Promise<string> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OpenAI API key is not configured");
   }
@@ -130,19 +113,18 @@ export async function extractMenuItems(
       {
         role: "system",
         content: `You are a data extraction assistant. Extract all menu items with their prices from the provided content (text or image).
-Return your response as a JSON object with the following structure:
-{
-  "items": [
-    {
-      "name": "Item name",
-      "description": "Item description if available",
-      "price": "Price as shown (e.g., '$12.99' or '12.99')",
-      "category": "Category if available (e.g., 'Appetizers', 'Main Course', 'Drinks')"
-    }
-  ]
-}
-Include ALL menu items you can find with their prices. If a price is not available for an item, use "Price not listed".
-Only return the JSON object, no other text.`,
+
+Return your response in clean markdown format, organized by category. Use this structure:
+
+## Category Name
+
+| Item | Description | Price |
+|------|-------------|-------|
+| Item Name | Brief description | $X.XX |
+
+Include ALL menu items you can find. Group items by category (e.g., Appetizers, Main Course, Drinks, Desserts).
+If a price is not available, use "Price not listed".
+If no category is apparent, use "Menu Items" as the category.`,
       },
       {
         role: "user",
@@ -150,20 +132,10 @@ Only return the JSON object, no other text.`,
       },
     ],
     temperature: 0,
-    response_format: { type: "json_object" },
   });
 
   const content = response.choices[0]?.message?.content;
-  if (!content) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(content) as { items: MenuItem[] };
-    return parsed.items || [];
-  } catch {
-    return [];
-  }
+  return content || "No menu items found.";
 }
 
 export async function extractMenuData(
