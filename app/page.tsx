@@ -1,6 +1,7 @@
 import { Phone, DollarSign, Clock, Users, CheckCircle, ArrowRight } from 'lucide-react'
 import { SignedIn, SignedOut } from '@clerk/nextjs'
 import Dashboard from '@/components/Dashboard'
+import AgentDemo from '@/components/AgentDemo'
 
 export default function Home() {
   return (
@@ -20,14 +21,14 @@ function LandingPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Hero Section */}
       <section className="px-4 py-20 mx-auto max-w-7xl">
-        <div className="text-center">
+        <div className="text-center mb-12">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
             <span className="text-blue-600">Agent</span>Eats
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
             AI-powered phone ordering for restaurants. No staff needed, no per-order fees.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors flex items-center justify-center gap-2">
               Get Started Free
               <ArrowRight className="w-5 h-5" />
@@ -36,6 +37,11 @@ function LandingPage() {
               Watch Demo
             </button>
           </div>
+        </div>
+
+        {/* Demo Agent */}
+        <div className="mb-16">
+          <AgentDemo />
         </div>
 
         {/* Stats */}
