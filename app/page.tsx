@@ -1,5 +1,6 @@
 import { Phone, DollarSign, Clock, Users, CheckCircle, ArrowRight } from 'lucide-react'
 import { SignedIn, SignedOut } from '@clerk/nextjs'
+import Link from 'next/link'
 import Dashboard from '@/components/Dashboard'
 import AgentDemo from '@/components/AgentDemo'
 
@@ -18,44 +19,134 @@ export default function Home() {
 
 function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <main className="min-h-screen relative">
       {/* Hero Section */}
-      <section className="px-4 py-20 mx-auto max-w-7xl">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
-            <span className="text-blue-600">Agent</span>Eats
+      <section className="relative px-4 py-20 mx-auto max-w-7xl overflow-hidden min-h-[50vh]">
+        {/* Animated Grid Background */}
+        <div className="absolute inset-0 w-full h-full">
+          
+        </div>
+
+        <div className="relative z-10 text-center mb-16">
+          {/* <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
+            <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
+            Now serving 100+ restaurants nationwide
+          </div> */}
+          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            AgentEats
+            <br />
+            <span className="text-3xl md:text-5xl text-gray-600 font-normal">Never Miss Another Order</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            AI-powered phone ordering for restaurants. No staff needed, no per-order fees.
+          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
+            Automated phone ordering that works 24/7. No staff training, no per-order fees, 
+            no missed calls. Just more revenue for your restaurant.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors flex items-center justify-center gap-2">
-              Get Started Free
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link href="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg">
+              Start for free
               <ArrowRight className="w-5 h-5" />
-            </button>
-            <button className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
-              Watch Demo
-            </button>
+            </Link>
+         
           </div>
+          <p className="text-sm text-gray-500">Free 14-day trial • No credit card required • Setup in 5 minutes</p>
         </div>
 
-        {/* Demo Agent */}
-        <div className="mb-16">
+       
+
+      </section>
+
+      {/* Demo Agent */}
+      <section className="px-4 py-16  grid grid-cols-2 max-w-6xl mx-auto gap-8">
+
+        
           <AgentDemo />
+   
+        <div className="flex flex-col justify-center items-start">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">How It Works</h3>
+          <ul className="text-gray-600 space-y-2">
+            <li>• Customer calls your number</li>
+            <li>• AI agent takes the order naturally</li>
+            <li>• Order sent directly to your kitchen system</li>
+            <li>• No commission, no middleman</li>
+             <li>• Try it out on the left!</li>
+          </ul>
         </div>
+      </section>
 
-        {/* Stats */}
+
+      {/* Features Section */}
+      <section className="px-4 py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Automate Phone Orders</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Our system handles every aspect of phone ordering so you can focus on cooking great food</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
+                <Phone className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Natural Conversations</h3>
+              <p className="text-gray-600">Handles complex orders, modifications, and questions just like your best staff member would</p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-6">
+                <Clock className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">24/7 Availability</h3>
+              <p className="text-gray-600">Never miss an order again. Works during busy hours, after closing, and on holidays</p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-6">
+                <DollarSign className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Zero Commission</h3>
+              <p className="text-gray-600">Keep 100% of your revenue. No per-order fees, no percentage cuts, just a simple monthly subscription</p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-6">
+                <Users className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Menu Integration</h3>
+              <p className="text-gray-600">Automatically syncs with your menu, prices, and availability. Updates in real-time</p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-6">
+                <CheckCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Order Accuracy</h3>
+              <p className="text-gray-600">95% accuracy rate with built-in order confirmation and customer verification</p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-6">
+                <ArrowRight className="w-6 h-6 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Easy Setup</h3>
+              <p className="text-gray-600">Get started in 5 minutes. No technical knowledge required, we handle everything</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="px-4 py-16 bg-white">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">24/7</div>
-            <div className="text-gray-600">Always Available</div>
+          <div className="text-center p-6 rounded-lg bg-blue-50">
+            <div className="text-4xl font-bold text-blue-600 mb-2">24/7</div>
+            <div className="text-gray-700 font-medium">Always Available</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">0%</div>
-            <div className="text-gray-600">Commission Fees</div>
+          <div className="text-center p-6 rounded-lg bg-green-50">
+            <div className="text-4xl font-bold text-green-600 mb-2">0%</div>
+            <div className="text-gray-700 font-medium">Commission Fees</div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">95%</div>
+          <div className="text-center p-6 rounded-lg bg-purple-50">
+            <div className="text-4xl font-bold text-purple-600 mb-2">95%</div>
             <div className="text-gray-600">Order Accuracy</div>
           </div>
         </div>
