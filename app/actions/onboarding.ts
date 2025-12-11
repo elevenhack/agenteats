@@ -3,6 +3,7 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import { createElevenLabsAgent } from '@/lib/elevenlabs'
 
 export async function createOrganization(formData: FormData) {
   const { userId, orgId } = await auth()
@@ -26,11 +27,18 @@ export async function createOrganization(formData: FormData) {
     organizationId: orgId,
   })
 
-  // Create the organization in the database
+  // Create ElevenLabs agent with restaurant information
+  const agentId = await createElevenLabsAgent({
+    restaurantName: name,
+    location,
+    menu,
+  })
+
+  // Create the organization in the database with the agent ID
   await prisma.organization.create({
     data: {
       clerkOrgId: orgId,
-      agentId: '', // You can set this later or generate it here
+      agentId,
       name,
       menu,
       location,

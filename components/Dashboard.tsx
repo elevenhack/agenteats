@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition } from 'react'
 import { Eye, Package, Settings, Phone, Activity, DollarSign, Clock, Menu, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import KanbanBoardWrapper from './KanbanBoardWrapper'
+import DashboardAgentDemo from './DashboardAgentDemo'
 import { getOrders, updateOrderStatus } from '@/app/actions/orders'
 
 type DashboardView = 'overview' | 'live' | 'orders' | 'settings'
@@ -535,6 +536,7 @@ function SettingsView() {
   const [name, setName] = useState('')
   const [location, setLocation] = useState('')
   const [typicalWaitTime, setTypicalWaitTime] = useState('')
+  const [agentId, setAgentId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -546,6 +548,7 @@ function SettingsView() {
           setName(settings.name || '')
           setLocation(settings.location || '')
           setTypicalWaitTime(settings.typicalWaitTime || '')
+          setAgentId(settings.agentId || null)
         }
       } catch (error) {
         console.error('Failed to load settings:', error)
@@ -644,6 +647,21 @@ function SettingsView() {
           <p className="text-sm text-gray-600 mt-2">View and edit your menu so the AI can take accurate orders.</p>
         </div>
       </div>
+
+      {/* Agent Demo */}
+      {agentId && (
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Test Your AI Agent</h3>
+          </div>
+          <div className="p-6">
+            <p className="text-sm text-gray-600 mb-4">
+              Try out your AI phone agent by clicking the button below. Make sure to allow microphone access.
+            </p>
+            <DashboardAgentDemo agentId={agentId} restaurantName={name} />
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-end gap-4">
         {saveSuccess && (

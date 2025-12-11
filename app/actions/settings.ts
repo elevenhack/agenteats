@@ -18,6 +18,7 @@ export async function getOrganizationSettings() {
       location: true,
       typicalWaitTime: true,
       menu: true,
+      agentId: true,
     },
   })
 
