@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import {
   ClerkProvider,
   SignInButton,
@@ -30,7 +31,7 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${jetbrainsMono.variable} antialiased font-mono`}>
           <header className="flex justify-between items-center p-4 gap-4 h-16 border-b sticky top-0 z-10 bg-white">
-            <p className="text-lg font-mono">AgentEats</p>
+            <Link href="/" className="text-lg font-mono hover:opacity-80 transition-opacity">AgentEats</Link>
 <div className="flex items-center gap-4">
             <SignedOut>
               <SignInButton />
