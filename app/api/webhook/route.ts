@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 interface TranscriptItem {
   role: "agent" | "user";
@@ -26,74 +31,93 @@ interface WebhookEvent {
   };
 }
 
+interface OrderExtraction {
+  whoItsFor: string;
+  orders: string;
+}
+
 export async function GET() {
   return NextResponse.json({ status: "webhook listening" }, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.ELEVENLABS_WEBHOOK_SECRET;
-  const { event, error } = await constructWebhookEvent(req, secret);
+  try {
+    const event: WebhookEvent = await req.json();
 
-  if (error || !event) {
-    console.error("Webhook validation error:", error);
-    return NextResponse.json({ error: error || "Invalid event" }, { status: 401 });
-  }
+    if (event.type === "post_call_transcription") {
+      const agentId = event.data.agent_id;
 
-  if (event.type === "post_call_transcription") {
-    // Extract all user messages from the transcript
-    const userMessages = event.data.transcript
-      .filter((item) => item.role === "user")
-      .map((item) => item.message);
+      // Look up organization by agent ID
+      const organization = await prisma.organization.findFirst({
+        where: { agentId },
+      });
 
-    console.log("User messages from call:", userMessages);
-    console.log("Full transcript:", JSON.stringify(event.data.transcript, null, 2));
+      if (!organization) {
+        console.error("Organization not found for agent ID:", agentId);
+        return NextResponse.json({ error: "Organization not found" }, { status: 404 });
+      }
 
-    // TODO: Process user messages (e.g., save to database, trigger actions, etc.)
-  }
+      // Extract full transcript text
+      const transcriptText = event.data.transcript
+        .map((item) => `${item.role}: ${item.message}`)
+        .join("\n");
 
-  return NextResponse.json({ received: true }, { status: 200 });
+      console.log("Full transcript:", transcriptText);
+
+      // Use OpenAI to extract structured order data
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a data extraction assistant for a restaurant ordering system. Extract the following information from the call transcript:
+1. "whoItsFor": The name of the person the order is for (who is ordering or who the order is being placed for)
+2. "orders": A clear summary of what was ordered (items, quantities, any special instructions)
+
+Return your response as a JSON object with this structure:
+{
+  "whoItsFor": "Customer name",
+  "orders": "Detailed order summary"
 }
 
-const constructWebhookEvent = async (
-  req: NextRequest,
-  secret?: string
-): Promise<{ event: WebhookEvent | null; error: string | null }> => {
-  const body = await req.text();
-  const signature_header = req.headers.get("ElevenLabs-Signature");
+If you cannot determine who the order is for, use "Unknown Customer".
+Only return the JSON object, no other text.`,
+          },
+          {
+            role: "user",
+            content: transcriptText,
+          },
+        ],
+        temperature: 0,
+        response_format: { type: "json_object" },
+      });
 
-  if (!signature_header) {
-    return { event: null, error: "Missing signature header" };
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        console.error("No content from OpenAI");
+        return NextResponse.json({ error: "Failed to extract order data" }, { status: 500 });
+      }
+
+      const orderData: OrderExtraction = JSON.parse(content);
+
+      // Create order in database
+      const order = await prisma.order.create({
+        data: {
+          orgId: organization.id,
+          whoItsFor: orderData.whoItsFor,
+          orders: orderData.orders,
+          status: "new",
+        },
+      });
+
+      console.log("Order created:", order);
+
+      return NextResponse.json({ received: true, order }, { status: 200 });
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 });
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-
-  const headers = signature_header.split(",");
-  const timestamp = headers.find((e) => e.startsWith("t="))?.substring(2);
-  const signature = headers.find((e) => e.startsWith("v0="));
-
-  if (!timestamp || !signature) {
-    return { event: null, error: "Invalid signature format" };
-  }
-
-  // Validate timestamp (within 30 minutes)
-  const reqTimestamp = Number(timestamp) * 1000;
-  const tolerance = Date.now() - 30 * 60 * 1000;
-  if (reqTimestamp < tolerance) {
-    return { event: null, error: "Request expired" };
-  }
-
-  // Validate HMAC signature
-  const message = `${timestamp}.${body}`;
-
-  if (!secret) {
-    return { event: null, error: "Webhook secret not configured" };
-  }
-
-  const digest =
-    "v0=" + crypto.createHmac("sha256", secret).update(message).digest("hex");
-
-  if (signature !== digest) {
-    return { event: null, error: "Invalid signature" };
-  }
-
-  const event = JSON.parse(body) as WebhookEvent;
-  return { event, error: null };
-};
+}
