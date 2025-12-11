@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Eye, Package, Settings, Phone, Activity, DollarSign, Clock, Menu } from 'lucide-react'
 import Link from 'next/link'
-import KanbanBoard from './KanbanBoard'
+import KanbanBoardWrapper from './KanbanBoardWrapper'
 
 type DashboardView = 'overview' | 'live' | 'orders' | 'settings'
 
@@ -23,7 +23,12 @@ export default function Dashboard() {
       case 'overview':
         return <OverviewView />
       case 'live':
-        return <LiveView onKanbanOpen={() => setShowKanban(true)} />
+        // Open kanban immediately and switch back to overview
+        if (!showKanban) {
+          setShowKanban(true)
+          setActiveView('overview')
+        }
+        return <OverviewView />
       case 'orders':
         return <OrdersView />
       case 'settings':
@@ -78,7 +83,7 @@ export default function Dashboard() {
       </div>
 
       {/* Kanban Board Overlay */}
-      <KanbanBoard 
+      <KanbanBoardWrapper 
         isOpen={showKanban} 
         onClose={() => setShowKanban(false)} 
       />
@@ -185,68 +190,6 @@ function OverviewView() {
   )
 }
 
-function LiveView({ onKanbanOpen }: { onKanbanOpen: () => void }) {
-  return (
-    <div className="space-y-6 cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors" onClick={onKanbanOpen}>
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Live View</h2>
-        <p className="text-gray-600">Monitor incoming calls and AI agent performance in real-time.</p>
-        <p className="text-sm text-blue-600 mt-2">💡 Click anywhere to open order management board</p>
-      </div>
-
-      {/* Status Indicator */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="font-semibold text-gray-900">AI Agent Online</span>
-          </div>
-          <div className="text-sm text-gray-600">Last call: 3 minutes ago</div>
-        </div>
-      </div>
-
-      {/* Active Calls */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Active Calls</h3>
-        </div>
-        <div className="p-6">
-          <div className="text-center py-12">
-            <Phone className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No active calls at the moment</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Call History */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Call Activity</h3>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {[
-              { caller: '+1 (555) 123-4567', duration: '2:34', outcome: 'Order placed', time: '3 min ago' },
-              { caller: '+1 (555) 987-6543', duration: '1:45', outcome: 'Menu inquiry', time: '12 min ago' },
-              { caller: '+1 (555) 456-7890', duration: '3:12', outcome: 'Order placed', time: '28 min ago' },
-            ].map((call, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-semibold text-gray-900">{call.caller}</p>
-                  <p className="text-sm text-gray-600">{call.outcome}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-900">{call.duration}</p>
-                  <p className="text-sm text-gray-500">{call.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function OrdersView() {
   return (
